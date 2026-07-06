@@ -81,3 +81,41 @@ images, labels = data_iter.next()
 for images, labels in train_loader:
     pass
 
+#5. 针对自定义数据集的输入管线
+class CustomDataset(torch.utils.data.Dataset):
+    def __init__(self):
+        #初始化
+        #TODO
+        pass
+
+    def __getitem__(self, index):
+        #TODO
+        #返回数据
+        pass
+
+    def __len__(self):
+        return 0
+
+custom_dataset = CustomDataset()
+train_loader = torch.utils.data.DataLoader(dataset=train_dataset,batch_size=64,shuffle=True)
+
+#6.预训练模型
+
+resnet = torchvision.models.resnet18(pretrained=True)
+
+for param in resnet.parameters():
+    param.requires_grad = False
+
+resnet.fc = nn.Linear(resnet.fc.in_features, 100)
+
+images = torch.randn(64, 3, 224, 224)
+outputs = resnet(images)
+print (outputs.size())     # (64, 100)
+
+
+#保存模型
+torch.save(resnet, 'model.ckpt')
+model = torch.load('model.ckpt')
+
+torch.save(resnet.state_dict(), 'params.ckpt')
+resnet.load_state_dict(torch.load('params.ckpt'))
