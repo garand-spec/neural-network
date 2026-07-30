@@ -42,7 +42,7 @@ def random_view(image):
     输出：
     [3, 64, 64]
     """
-    _, height, width = image.shape
+    _, height, width= image.shape
 
     #随机裁剪尺寸
     crop_size = random.randint(44, 64)
@@ -56,6 +56,10 @@ def random_view(image):
         left:left + crop_size
     ]
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    cropped = cropped.to(device)
+
     #增加batch维度， 方便使用interpolate
     cropped = cropped.unsqueeze(0)
 
@@ -67,7 +71,7 @@ def random_view(image):
         align_corners=False
     )
 
-    cropped = cropped.squeeze()
+    cropped = cropped.squeeze(0)
 
     #随机水平翻转
     if random.random() < 0.5:
@@ -77,19 +81,83 @@ def random_view(image):
     brightness = random.uniform(0.6, 1.4)
     cropped = cropped * brightness
 
+    
+
     #每个颜色通道分别做轻微扰动
     color_scale = torch.tensor([
         random.uniform(0.8, 1.2),
         random.uniform(0.8, 1.2),
         random.uniform(0.8, 1.2)
-    ]).view()
+    ],
+    dtype=cropped.dtype,
+    device=cropped.device
+    ).view(3, 1, 1)
 
     cropped = cropped * color_scale
 
     return cropped.clamp(0, 1)
 
+#Patch Embedding
+class PatchEmbedding(nn.Module):
+    """
+    使用卷积实现Patch切分
+
+    输入
+    [B, 3, 64, 64]
+
+    patch_size = 8时
+    64 / 8 = 8
+
+    最终得到
+    8*8 = 64个Patch
+    """
+
+    def __init__(self, image_size=64, patch_size=8, embed_dim=64):
+        super().__init__()
+
+        self.image_size = image_size
+        self.patch_size = patch_size
+
+        self.grad_size = image_size // patch_size
+        self.num_patches = self.grad_size ** 2
+
+        self.projection = nn.Conv2d(
+            in_channels=3,
+            out_channels=embed_dim,
+            kernel_size=patch_size,
+            stride=patch_size
+        )
+
+    def forward(self, x):
+        #输入
+        #[B, 3, 64, 64]
+
+        x = self.projection(x)
+
+        #经过卷积
+        #[B, 64, 8, 8]
+
+        x = x.flatten(x)
+
+        #展平空间维度
+        #[B, 64, 64]
+        #
+        #第一个64， 特征维度
+        #第二个64， Patch数量
+        x = x.transpose(1, 2)
+
+        #转换为
+        #[B, 64, 64]
+        #
+        #维度含义
+        #[batch, patch数量, 特征维度]
+
+        return x
+
 if __name__ == "__main__":
-    image = create_image().permute(1, 2, 0).numpy()
+    image = create_image()
+    image = random_view(image=image)
+    image = image.detach().cpu().permute(1, 2, 0).contiguous().numpy()
     image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     cv2.imshow("imshow", image)
     cv2.waitKey(0)
