@@ -137,7 +137,7 @@ class PatchEmbedding(nn.Module):
         #经过卷积
         #[B, 64, 8, 8]
 
-        x = x.flatten(x)
+        x = x.flatten(2)
 
         #展平空间维度
         #[B, 64, 64]
@@ -153,6 +153,51 @@ class PatchEmbedding(nn.Module):
         #[batch, patch数量, 特征维度]
 
         return x
+
+#一个简单的 Vision Transformer
+class TinyVisionTransformer(nn.Moudule):
+
+    def __init__(self, image_size=64, patch_size=8, embed_dim=64, num_heads=4, num_layers=2):
+        super().__init__()
+
+        self.patch_embedding = PatchEmbedding(
+            image_size=image_size,
+            patch_size=patch_size,
+            embed_dim=embed_dim
+        )
+
+        num_patches = self.patch_embedding.num_patches
+
+        #CLS token: 负责描述整张图
+        self.cls_token = nn.Parameter(
+            torch.zeros(1, 1, embed_dim)
+        )
+
+        #位置编码 告诉模型每个patch在哪里
+        self.position_embedding = nn.Parameter(
+            torch.zeros(1, num_patches + 1, embed_dim)
+        )
+
+        encoder_layer = nn.TransformerEncoderLayer(
+            d_model= embed_dim,
+            nhead=num_heads,
+            dim_feedforward=embed_dim * 4
+            batch_first=True
+        )
+
+        self.transformer = nn.TransformerEncoder(
+            encoder_layer,
+            num_layers=num_layers
+        )
+
+        self.norm = nn.LayerNorm(embed_dim)
+
+        #投影头 用于计算跨视图的一致性
+        self.projection = nn.Sequential(
+            nn.Linear(embed_dim, 128),
+            nn.GELU(),
+            nn.Linear(128, 64)
+        )
 
 if __name__ == "__main__":
     image = create_image()
