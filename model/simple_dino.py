@@ -201,9 +201,9 @@ class TinyVisionTransformer(nn.Moudule):
 
     def forward(self, x):
         #得到patch token
-        batch_tokens = self.patch_embedding(x)
+        patch_tokens = self.patch_embedding(x)
 
-        batch_size = batch_size.shape[0]
+        batch_size = patch_tokens.shape[0]
 
         #扩展CLS Token
         cls_tokens = self.cls_token.expand(
@@ -211,6 +211,40 @@ class TinyVisionTransformer(nn.Moudule):
             -1,
             -1
         )
+
+        #cls token 放在所有patch token前面
+        tokens = torch.cat(
+            [cls_tokens, patch_tokens],
+            dim=1
+        )
+
+        #tokens形状:
+        #[B, 65, 64]
+        #65 = 1cls + 64patch
+
+        #加入位置编码
+        tokens = tokens + self.position_embedding
+
+        #transformer提取特征
+        tokens = self.transformer(tokens)
+        tokens = self.norm(tokens)
+
+        #第0个token是CLS TOKEN
+        cls_features = tokens[:, 0]
+
+        #剩余token是patch特征
+        patch_features = tokens[:, 1:]
+
+        #投影后的cls特征， 用于一致性训练
+        projected_feature = self.projection(self.cls_token)
+
+        #归一化， 使其更适合计算余弦相似度
+        projected_feature = F.normalize(
+            projected_feature,
+            dim=-1
+        )
+
+        return projected_feature, cls_features, patch_features
 
 if __name__ == "__main__":
     image = create_image()
