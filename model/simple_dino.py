@@ -181,7 +181,7 @@ class TinyVisionTransformer(nn.Moudule):
         encoder_layer = nn.TransformerEncoderLayer(
             d_model= embed_dim,
             nhead=num_heads,
-            dim_feedforward=embed_dim * 4
+            dim_feedforward=embed_dim * 4,
             batch_first=True
         )
 
@@ -197,6 +197,19 @@ class TinyVisionTransformer(nn.Moudule):
             nn.Linear(embed_dim, 128),
             nn.GELU(),
             nn.Linear(128, 64)
+        )
+
+    def forward(self, x):
+        #得到patch token
+        batch_tokens = self.patch_embedding(x)
+
+        batch_size = batch_size.shape[0]
+
+        #扩展CLS Token
+        cls_tokens = self.cls_token.expand(
+            batch_size,
+            -1,
+            -1
         )
 
 if __name__ == "__main__":
