@@ -246,6 +246,122 @@ class TinyVisionTransformer(nn.Moudule):
 
         return projected_feature, cls_features, patch_features
 
+#EMA更新Teacher
+@torch.no_grad()
+def update_teacher(student, teacher, momentum=0.99):
+    """
+    Teacher 参数更新
+
+    teacher = 
+        momentum * teacher
+        + (1 - momoentum) * student
+    """
+
+    for student_parameter, teacher_parameter in zip(
+        student.parameters(),
+        teacher.parameters()
+    ):
+        teacher_parameter.data_mul_(momentum)
+
+        teacher_parameter.data.add_(
+            student_parameter.data,
+            alpha=1.0 - momentum
+        )
+
+#跨视图一致性损失
+def dino_loss(student_output, teacher_output):
+    """
+    两个归一化特征越接近，余弦相似度越接近1
+    
+    loss = 1 - cosine_similarity
+    """
+
+    similarity = (
+        student_output * teacher_output
+    ).sum(dim=-1)
+
+    loss = 1 - similarity
+
+    return loss
+
+#开始训练
+def train():
+    torch.manual_seed(42)
+    random.seed(42)
+
+    device = torch.device(
+        "cuda" if torch.cuda.is_available() else "cpu"
+    )
+
+    print("当前设备", device)
+
+    #创建学生网络
+    student = TinyVisionTransformer().to(device)
+
+    #教师初始参数复制学生
+    teacher = copy.deepcopy(student)
+
+    #Teacher不进行反向传播
+    for parameter in teacher.parameters():
+        parameter.requires_grad = False
+
+    optimizer = torch.optim.AdamW(
+        student.parameters(),
+        lr=1e-3,
+        weight_decay=1e-4
+    )
+
+    original_image = create_image()
+
+    student.train()
+    teacher.eval()
+
+    for step in range(201):
+
+        #同一视图产生两个不同视图
+        view1 = random_view(original_image)
+        view2 = random_view(original_image)
+
+        #添加batch维度
+        view1 = view1.unsqueeze(0).to(device)
+        view2 = view2.unsqueeze(0).to(device)
+
+        #Teacher查看视图1
+        with torch.no_grad:
+            teacher_output, _, _= teacher(view1)
+        #Student查看视图2
+        student_output, _, _, = student(view2)
+
+        #让两个视图的图像级特征接近
+        loss = dino_loss(
+            student_output,
+            teacher_output.detach()
+        )
+
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+        #使用Student参数缓慢更新Teacher
+        update_teacher(
+            student,
+            teacher,
+            momentous=0.99
+        )
+
+        if step % 20 == 0:
+            cosine_similarity = (
+                student_output * teacher_output
+            ).sum(dim=-1).mean()
+
+            print(
+                f"step:{step:3d}"
+                f"loss={loss.item():.4f}"
+                f"相似度={cosine_similarity.item():.4f}"
+            )
+
+    return student, original_image, device
+
 if __name__ == "__main__":
     image = create_image()
     image = random_view(image=image)
