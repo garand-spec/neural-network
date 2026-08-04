@@ -4,3 +4,5 @@ data/
 *.pth 
 *.onnx 
 *.rknn 
+__pycache__/
+artifacts/

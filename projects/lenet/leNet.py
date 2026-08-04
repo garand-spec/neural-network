@@ -14,14 +14,14 @@ test_transform = transforms.Compose([
 ])
 
 train_dataset = datasets.MNIST(
-    root="lenet_myself/root",
+    root="data/mnist",
     train=True,
     download=True,
     transform=train_transform
 )
 
 test_dataset = datasets.MNIST(
-    root="lenet_myself/root",
+    root="data/mnist",
     train=False,
     download=True,
     transform=test_transform

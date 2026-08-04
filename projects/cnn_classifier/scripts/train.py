@@ -5,7 +5,7 @@ from torch.utils.data import DataLoader #数据加载
 from torchvision import datasets, transforms #数据集 和 数据变换
 from tqdm import tqdm #训练进度条
 import os
-from model.cnn import simplecnn
+from projects.cnn_classifier.model.cnn import simplecnn
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -85,6 +85,7 @@ def evaluate(model, test_loader, criterion):
 
 
 def save_model(model,save_path):
+    os.makedirs(os.path.dirname(save_path), exist_ok=True)
     torch.save(model.state_dict(), save_path)
             
 
@@ -94,7 +95,7 @@ if __name__ == "__main__":
     num_epochs = 10
     learning_rate = 0.001
     num_class = 4
-    save_path = "pytorch_nn/model/best.pth"
+    save_path = "artifacts/cnn_classifier/best.pth"
     model = simplecnn(num_class).to(device) #对模型进行实例化， 并送入gpu或者cpu中
     criterion = nn.CrossEntropyLoss() #指定损失函数为交叉熵损失
     optimizer = optim.Adam(model.parameters(), lr=learning_rate) #指定优化器为Adam
