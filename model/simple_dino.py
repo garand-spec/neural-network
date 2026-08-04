@@ -362,6 +362,69 @@ def train():
 
     return student, original_image, device
 
+#查看CLS特征和Patch特征
+def inspect_features(model, image, device):
+    model.eval()
+
+    image = image.unsqueeze(0).to(device)
+
+    with torch.no_grad():
+        projected_feature, cls_feature, patch_features = model(image)
+
+    print(
+        "\n训练完成"
+    )
+
+    print(
+        "投影特征形状：:",
+        projected_feature
+    )
+
+    print(
+        "CLS全局特征形状:",
+        cls_feature
+    )
+
+    print(
+        "Patch局部特征形状",
+        patch_features.shape
+    )
+
+    #patch_features:
+    #[1, 64, 64]
+    #1：一张图
+    #64：一共64个batch
+    #64：每个Patch用64维向量表示
+
+    #将Patch重新排成8*8空间网格
+
+    patch_map = patch_features.reshape(
+        1,
+        8,
+        8,
+        64
+    )
+
+    print(
+        "Patch二维特征图形状",
+        patch_map.shape
+    )
+
+    #取重心位置的Patch特征
+    center_patch = patch_map[0, 4, 4]
+
+    background_patch = patch_map[0, 0, 0]
+
+    similarity = F.cosine_similarity(
+        center_patch.unsqueeze(0),
+        background_patch.unsqueeze(0)
+    )
+
+    print(
+        "中心目标Patch与左上背景Patch相似度",
+        similarity.item()
+    )
+
 if __name__ == "__main__":
     image = create_image()
     image = random_view(image=image)
