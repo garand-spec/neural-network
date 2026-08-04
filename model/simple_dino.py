@@ -66,7 +66,7 @@ def random_view(image):
     #恢复到64*64
     cropped = F.interpolate(
         cropped,
-        size=(64*64),
+        size=(64,64),
         mode="bilinear",
         align_corners=False
     )
@@ -236,7 +236,7 @@ class TinyVisionTransformer(nn.Module):
         patch_features = tokens[:, 1:]
 
         #投影后的cls特征， 用于一致性训练
-        projected_feature = self.projection(self.cls_token)
+        projected_feature = self.projection(cls_features)
 
         #归一化， 使其更适合计算余弦相似度
         projected_feature = F.normalize(
@@ -261,7 +261,7 @@ def update_teacher(student, teacher, momentum=0.99):
         student.parameters(),
         teacher.parameters()
     ):
-        teacher_parameter.data_mul_(momentum)
+        teacher_parameter.data.mul_(momentum)
 
         teacher_parameter.data.add_(
             student_parameter.data,
@@ -327,7 +327,7 @@ def train():
         view2 = view2.unsqueeze(0).to(device)
 
         #Teacher查看视图1
-        with torch.no_grad:
+        with torch.no_grad():
             teacher_output, _, _= teacher(view1)
         #Student查看视图2
         student_output, _, _, = student(view2)
@@ -346,7 +346,7 @@ def train():
         update_teacher(
             student,
             teacher,
-            momentous=0.99
+            momentum=0.99
         )
 
         if step % 20 == 0:
