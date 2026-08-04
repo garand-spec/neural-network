@@ -155,7 +155,7 @@ class PatchEmbedding(nn.Module):
         return x
 
 #一个简单的 Vision Transformer
-class TinyVisionTransformer(nn.Moudule):
+class TinyVisionTransformer(nn.Module):
 
     def __init__(self, image_size=64, patch_size=8, embed_dim=64, num_heads=4, num_layers=2):
         super().__init__()
@@ -426,9 +426,10 @@ def inspect_features(model, image, device):
     )
 
 if __name__ == "__main__":
-    image = create_image()
-    image = random_view(image=image)
-    image = image.detach().cpu().permute(1, 2, 0).contiguous().numpy()
-    image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    cv2.imshow("imshow", image)
-    cv2.waitKey(0)
+    trained_student, image, device = train()
+
+    inspect_features(
+        trained_student,
+        image,
+        device
+    )
