@@ -18,11 +18,19 @@
 - **DINOv3 简化版**：写过 student-teacher 结构、EMA 参数更新、跨视图一致性 loss、Patch Embedding、CLS token、Vision Transformer 主干（`projects/dino/simple_dino.py`）。
 - **基础训练循环**：`optimizer.zero_grad()` → `loss.backward()` → `optimizer.step()` 的流程。
 
+## 我掌握的额外内容（2026-08 数据管线四课）
+
+- 数据管线四工位：Dataset（惰性，__getitem__ 出单张）→ Transforms（单张加工）→ Sampler（取序）→ DataLoader（拼批+多进程）。
+- 手写过自定义 Dataset（扫子文件夹、建类映射、PIL 读图 + transform）和自定义 collate_fn。
+- 能解释 Resize/ToTensor/Normalize 的数学：ToTensor = 通道轴翻转 + 除255；Normalize = (x-mean)/std 逐通道。
+- 踩过坑并修复：`self.transform = transforms`（模块）vs `transform`（参数）。
+- 笔记锚点：`examples/data_pipline/README.md`。
+
 ## 我的弱项
 
 - 对敲过的代码记忆不深，需要回看才能复述。
-- 数据管线只停留在「会用 `DataLoader`」的阶段，不清楚内部的取样、装填、变换、并行机制。
-- 对数据预处理（归一化、标准化、增强）为什么要这么做、底层是什么，理解不深。
+- 数据管线懂了单样本→单批次这条链，但多进程（num_workers）内部搬运机制、WeightedRandomSampler 等进阶用法还没学。
+- BN/LN/GN 归一化家族的细节（按轴、运行时统计、eps）只是初识，没深入。
 - 张量形状变换（reshape/transpose/view）偶尔会算错。
 
 ## 当前学习目标
