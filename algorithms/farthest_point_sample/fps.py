@@ -64,7 +64,7 @@ def farthest_point_sample(xyz, npoint):
             dim=-1 
             )
 
-        #dist:
+        #dist
         #[B, N]
 
         #4. 更新每个点到“已选点集合”的最近距离
