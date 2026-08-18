@@ -52,15 +52,15 @@ def farthest_point_sample(xyz, npoint):
         centroids[:, i] = farthest
 
         #2.取出这个点的坐标
-        centroids = xyz[
+        centroid = xyz[
             batch_indices,
             farthest,
             :
-        ].view[B, 1, 3]
+        ].view(B, 1, 3)
 
         #3.计算所有点到当前centroids的欧氏距离平方
         dist = torch.sum(
-            (xyz - centroids) ** 2,
+            (xyz - centroid) ** 2,
             dim=-1 
             )
 
