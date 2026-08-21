@@ -2,7 +2,7 @@ from farthest_point_sample import fps
 from ball_query import ball_query
 from index_points import index_points
 
-import pytorch as torch
+import torch
 
 def sample_and_group(
     num_centroids,
