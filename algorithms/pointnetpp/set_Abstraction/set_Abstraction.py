@@ -36,7 +36,7 @@ class PointNetAbstraction(nn.Module):
                         )
 
                         self.mlp_bns.append(
-                                nn.BatchNorm3d(
+                                nn.BatchNorm2d(
                                         out_channel
                                 )
                         )
