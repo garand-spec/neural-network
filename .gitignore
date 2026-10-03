@@ -1,8 +1,27 @@
-data/ 
-*.tar.gz 
-*.pt 
-*.pth 
-*.onnx 
-*.rknn 
+# 下载的数据和本机生成的输出
+/data/
+/artifacts/
+*.tar.gz
+*.pt
+*.pth
+*.ckpt
+*.onnx
+*.rknn
+
+# Python 缓存与本地环境
 __pycache__/
-artifacts/
+*.py[cod]
+.pytest_cache/
+.venv/
+venv/
+
+# C/C++ 编译产物
+*.exe
+*.obj
+*.o
+*.pdb
+*.ilk
+
+# 本机编辑器配置与可恢复备份
+/.vscode/
+/.codex/

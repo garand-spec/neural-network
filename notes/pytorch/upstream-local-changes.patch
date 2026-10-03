@@ -1,0 +1,32 @@
+diff --git a/tutorials/01-basics/feedforward_neural_network/main.py b/tutorials/01-basics/feedforward_neural_network/main.py
+index 0c766a7..e3066e4 100644
+--- a/tutorials/01-basics/feedforward_neural_network/main.py
++++ b/tutorials/01-basics/feedforward_neural_network/main.py
+@@ -3,6 +3,9 @@ import torch.nn as nn
+ import torchvision
+ import torchvision.transforms as transforms
+ 
++torchvision.datasets.MNIST.mirrors = [
++    'https://storage.googleapis.com/cvdf-datasets/mnist/'
++]
+ 
+ # Device configuration
+ device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+@@ -91,4 +94,4 @@ with torch.no_grad():
+     print('Accuracy of the network on the 10000 test images: {} %'.format(100 * correct / total))
+ 
+ # Save the model checkpoint
+-torch.save(model.state_dict(), 'model.ckpt')
+\ No newline at end of file
++torch.save(model.state_dict(), 'model.ckpt')
+diff --git a/tutorials/01-basics/pytorch_basics/main.py b/tutorials/01-basics/pytorch_basics/main.py
+index 744400c..82a7109 100644
+--- a/tutorials/01-basics/pytorch_basics/main.py
++++ b/tutorials/01-basics/pytorch_basics/main.py
+@@ -186,4 +186,4 @@ model = torch.load('model.ckpt')
+ 
+ # Save and load only the model parameters (recommended).
+ torch.save(resnet.state_dict(), 'params.ckpt')
+-resnet.load_state_dict(torch.load('params.ckpt'))
++resnet.load_state_dict(torch.load('params.ckpt'))
+\ No newline at end of file
